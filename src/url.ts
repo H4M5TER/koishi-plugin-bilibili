@@ -20,8 +20,14 @@ export function apply(ctx: Context, config: Config) {
   ctx.middleware(async ({ elements }, next) => {
     try {
       for (const element of elements) {
-        if (element.type !== 'text') continue
-        const avid = await testVideo(element.attrs.content, ctx.http)
+        let url
+        if (element.type === 'text'){
+          url = element.attrs.content
+        }else if (element.type === 'json'){
+          const data = JSON.parse(element.attrs.data)
+          url = data.meta.detail_1?.qqdocurl
+        }
+        const avid = await testVideo(url, ctx.http)
         if (avid) return next(async () => {
           return await render(avid, ctx.http, config.lengthLimit)
         })
