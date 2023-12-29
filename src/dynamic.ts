@@ -11,6 +11,7 @@ declare module '.' {
 interface DynamicNotifiction {
   botId: string
   bilibiliId: string
+  atAll: boolean
   // The time won't be presisted in database.
   // We just find a place to record the time.
   lastUpdated?: number
@@ -133,9 +134,10 @@ export async function apply(ctx: Context, config: Config) {
   }, {} as Dict<[Pick<Channel, 'id' | 'guildId' | 'platform' | 'bilibili'>, DynamicNotifiction][]>)
 
   ctx.guild().command('bilibili/dynamic.add <uid:string>', '添加对 B 站用户的动态的监听', { checkArgCount: true, authority: 2 })
+    .option('at', '--at', {fallback: false})
     .channelFields(['id', 'guildId', 'platform', 'bilibili'])
     .before(checkDynamic)
-    .action(async ({ session }, uid) => {
+    .action(async ({ session, options }, uid) => {
       if (session.channel.bilibili.dynamic.find(notification => notification.bilibiliId === uid)) {
         return '该用户已在监听列表中。'
       }
@@ -149,6 +151,7 @@ export async function apply(ctx: Context, config: Config) {
       const notification: DynamicNotifiction = {
         botId: `${session.platform}:${session.bot.userId || session.bot.selfId}`,
         bilibiliId: uid,
+        atAll: options.at,
       }
       session.channel.bilibili.dynamic.push(notification)
       ;(list[uid] ||= []).push([{
@@ -220,7 +223,11 @@ export async function apply(ctx: Context, config: Config) {
             rendered.forEach((text, index) => {
               notifications.forEach(([channel, notification]) => {
                 notification.lastUpdated = neo[index].modules.module_author.pub_ts
-                ctx.bots[notification.botId].sendMessage(channel.id, text, channel.guildId)
+                let msg = text
+                if (notification.atAll)
+                  msg = segment.at('all').toString() + msg
+                const bot = ctx.bots[notification.botId]
+                bot.sendMessage(channel.id, msg, channel.guildId)
               })
             })
           }
