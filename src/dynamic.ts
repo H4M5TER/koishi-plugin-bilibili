@@ -112,6 +112,7 @@ export interface Config {
   interval: number
   image: boolean
   live: boolean
+  cookie: string
   httpsAgent: any
 }
 
@@ -119,6 +120,7 @@ export const Config: Schema<Config> = Schema.object({
   interval: Schema.number().description('请求之间的间隔 (秒)。').default(10),
   image: Schema.boolean().description('是否渲染为图片 (该选项依赖 puppeteer 插件)。').default(true),
   live: Schema.boolean().description('是否监控开始直播的动态').default(true),
+  cookie: Schema.string().default(''),
   httpsAgent: Schema.any().hidden(),
 })
 
@@ -252,10 +254,7 @@ function checkDynamic({ session }: Argv<never, 'bilibili'>) {
 async function request(uid: string, http: Quester, config: Config): Promise<BilibiliDynamicItem[]> {
   const res = await http.get('https://api.bilibili.com/x/polymer/web-dynamic/v1/feed/space?host_mid=' + uid, {
     headers: {
-      // 'Referer': `https://space.bilibili.com/${uid}/dynamic`,
-      // https://github.com/SocialSisterYi/bilibili-API-collect/issues/686
-      // 'Cookie': `DedeUserID=${uid}`
-      'User-Agent': 'Mozilla/5.0'
+      'Cookie': config.cookie,
     },
     httpsAgent: config.httpsAgent,
   })
