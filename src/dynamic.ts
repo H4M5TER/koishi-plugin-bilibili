@@ -258,7 +258,7 @@ async function request(uid: string, http: Quester, config: Config): Promise<Bili
     },
     httpsAgent: config.httpsAgent,
   })
-  if (res.code !== 0) throw new Error(`Failed to get dynamics. ${res}`)
+  if (res.code !== 0) throw new Error(`Failed to get dynamics. ${JSON.stringify(res)}`)
   return (res.data.items as BilibiliDynamicItem[])
     .sort((a, b) => b.modules.module_author.pub_ts - a.modules.module_author.pub_ts)
 }

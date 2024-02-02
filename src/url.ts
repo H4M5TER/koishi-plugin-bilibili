@@ -34,8 +34,9 @@ export function apply(ctx: Context, config: Config) {
         } else {
           url = `https://api.bilibili.com/x/web-interface/view?aid=${vid}`
         }
-        const { data } = await ctx.http.get(url)
-        return await render(data)
+        const res = await ctx.http.get(url)
+        if (res.code !== 0) throw new Error(`Failed to get video info. ${JSON.stringify(res)}}`)
+        return await render(res.data)
       }
     } catch (e) {
       logger.error('请求时发生异常: ', e)
