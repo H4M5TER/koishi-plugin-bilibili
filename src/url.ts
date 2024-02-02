@@ -21,14 +21,21 @@ export function apply(ctx: Context, config: Config) {
     try {
       for (const element of elements) {
         let url
-        if (element.type === 'text'){
+        if (element.type === 'text') {
           url = element.attrs.content
-        }else if (element.type === 'json'){
+        } else if (element.type === 'json') {
           const data = JSON.parse(element.attrs.data)
           url = data.meta.detail_1?.qqdocurl
         }
-        const avid = await testVideo(url, ctx.http)
-        if (avid) return await render(avid)
+        const vid = await testVideo(url, ctx.http)
+        if (!vid) return next()
+        if (/bv/i.test(vid)) {
+          url = `https://api.bilibili.com/x/web-interface/view?bvid=${vid}`
+        } else {
+          url = `https://api.bilibili.com/x/web-interface/view?aid=${vid}`
+        }
+        const { data } = await ctx.http.get(url)
+        return await render(data)
       }
     } catch (e) {
       logger.error('请求时发生异常: ', e)
@@ -43,7 +50,7 @@ async function testVideo(content: string, http: Quester): Promise<string> {
     const url = await parseB23(match[4], http)
     return await testVideo(url, http)
   } else if (match = VIDEO_REGEX.exec(content)) {
-    return match[8] || toAvid(match[9]).toString()
+    return match[8] || toAvid(match[9])
   }
 }
 
@@ -55,8 +62,8 @@ async function parseB23(value: string, http: Quester): Promise<string> {
   return result.headers['location']
 }
 
-async function render(avid: string, http: Quester, lengthLimit: number) {
-  const { data } = await http.get(`https://api.bilibili.com/x/web-interface/view?aid=${avid}`)
+async function render(data: any, http: Quester, lengthLimit: number) {
+  const { avid } = data
   const up = data.staff?.map(staff => staff.name).join('/') || data.owner.name
   const date = (new Date(data.pubdate * 1000)).toLocaleString()
   let desc: string = data.desc
