@@ -28,9 +28,7 @@ export function apply(ctx: Context, config: Config) {
           url = data.meta.detail_1?.qqdocurl
         }
         const avid = await testVideo(url, ctx.http)
-        if (avid) return next(async () => {
-          return await render(avid, ctx.http, config.lengthLimit)
-        })
+        if (avid) return await render(avid)
       }
     } catch (e) {
       logger.error('请求时发生异常: ', e)
