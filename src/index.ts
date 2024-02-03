@@ -2,21 +2,21 @@ import { Context, Quester, Schema } from 'koishi'
 import * as dynamic from './dynamic'
 import * as url from './url'
 
-export interface BilibiliChannel {}
+export interface BilibiliChannel { }
 
 declare module 'koishi' {
-    interface Channel {
-      bilibili: BilibiliChannel
-    }
+  interface Channel {
+    bilibili: BilibiliChannel
+  }
 }
 
-type Enable<T> = { enable: true } & T | { enable?: false }
+type Enable<T> = { enable: true, config: T } | { enable?: false }
 const enable = <T>(schema: Schema<T>): Schema<Enable<T>> => Schema.intersect([
   Schema.object({ enable: Schema.boolean().default(false).description('是否开启功能。') }),
   Schema.union([
     Schema.object({
-      enable: Schema.const(true),
-      ...schema.dict,
+      enable: Schema.const(true).required(),
+      config: schema,
     }),
     Schema.object({}),
   ]),
@@ -56,6 +56,6 @@ export function apply(context: Context, config: Config) {
     },
     ...config.quester,
   })
-  if (config.dynamic.enable) ctx.plugin(dynamic, config.dynamic)
-  if (config.url.enable) ctx.plugin(url, config.url)
+  if (config.dynamic.enable) ctx.plugin(dynamic, config.dynamic.config)
+  if (config.url.enable) ctx.plugin(url, config.url.config)
 }
