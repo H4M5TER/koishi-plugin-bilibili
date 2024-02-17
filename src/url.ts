@@ -92,8 +92,9 @@ UP 主: ${up} |  发布时间: ${date}
         if (element.type === 'text') {
           url = element.attrs.content
         } else if (element.type === 'json') {
-          const data = JSON.parse(element.attrs.data)
-          url = data.meta.detail_1?.qqdocurl
+          const { detail_1, news } = JSON.parse(element.attrs.data).meta
+          if (detail_1) url = detail_1.qqdocurl
+          if (news) url = news.jumpUrl
         }
         const vid = await testVideo(url, ctx.http)
         if (!vid) return next()
