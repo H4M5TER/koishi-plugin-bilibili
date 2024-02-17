@@ -1,13 +1,25 @@
 {
-  "name": "koishi-plugin-bilibili",
-  "version": "0.1.4",
+  "name": "@h4m5ter/koishi-plugin-bilibili",
+  "version": "0.2.0",
   "description": "bilibili plugin for koishi",
-  "main": "lib/index.js",
-  "repository": "https://github.com/Anillc/koishi-plugin-bilibili.git",
-  "author": "Anillc <void@anillc.cn>",
   "license": "MIT",
-  "scripts": {
-    "build": "tsc"
+  "repository": "https://github.com/H4M5TER/koishi-plugin-bilibili.git",
+  "author": "Anillc <void@anillc.cn>",
+  "maintainers": [
+    {
+      "name": "H4M5TER",
+      "email": "h4m5ter@outlook.com"
+    }
+  ],
+  "main": "lib/index.js",
+  "typings": "src/index.ts",
+  "files": [
+    "lib",
+    "src"
+  ],
+  "peerDependencies": {
+    "koishi": "^4.16.8",
+    "koishi-plugin-puppeteer": "^3.7.3"
   },
   "koishi": {
     "service": {
@@ -18,21 +30,5 @@
         "puppeteer"
       ]
     }
-  },
-  "files": [
-    "lib"
-  ],
-  "peerDependencies": {
-    "koishi": "^4.12.2",
-    "koishi-plugin-puppeteer": "^3.5.0"
-  },
-  "peerDependenciesMeta": {
-    "koishi-plugin-puppeteer": {
-      "optional": true
-    }
-  },
-  "devDependencies": {
-    "@types/node": "^18.15.11",
-    "typescript": "^5.0.2"
   }
 }

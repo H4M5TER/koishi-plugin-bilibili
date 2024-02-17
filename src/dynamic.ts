@@ -113,7 +113,6 @@ export interface Config {
   image: boolean
   live: boolean
   cookie: string
-  httpsAgent: any
 }
 
 export const Config: Schema<Config> = Schema.object({
@@ -121,7 +120,6 @@ export const Config: Schema<Config> = Schema.object({
   image: Schema.boolean().description('是否渲染为图片 (该选项依赖 puppeteer 插件)。').default(true),
   live: Schema.boolean().description('是否监控开始直播的动态').default(true),
   cookie: Schema.string().default(''),
-  httpsAgent: Schema.any().hidden(),
 })
 
 export const logger = new Logger('bilibili/dynamic')
@@ -256,7 +254,6 @@ async function request(uid: string, http: Quester, config: Config): Promise<Bili
     headers: {
       'Cookie': config.cookie,
     },
-    httpsAgent: config.httpsAgent,
   })
   if (res.code !== 0) throw new Error(`Failed to get dynamics. ${JSON.stringify(res)}`)
   return (res.data.items as BilibiliDynamicItem[])
