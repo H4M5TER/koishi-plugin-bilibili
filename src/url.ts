@@ -10,36 +10,19 @@ const URL_REGEX = /(?:(?:(?:https?|ftp):)?\/\/)?(?:(?:[a-z0-9\u00a1-\uffff][a-z0
 
 export interface Config {
   behavior: 'text' | 'mixed' | 'image'
-  maxline?: number
-  urlExtract?: boolean
+  maxline: number
+  urlExtract: boolean
 }
 
-const maxline = Schema.number().default(5).description('简介的最大行数，设置为 0 则不限制')
-const urlExtract = Schema.boolean().default(false).description('发图时提取链接以文本发送')
-export const Config: Schema<Config> = Schema.intersect([
-  Schema.object({
-    behavior: Schema.union([
-      Schema.const('text').description('直接发送，按行数截断'),
-      Schema.const('mixed').description('超过行数则渲染成图片发送'),
-      Schema.const('image').description('渲染成图片发送'),
-    ]).description('简介的渲染行为').role('radio').default('mixed'),
-  }),
-  Schema.union([
-    Schema.object({
-      behavior: Schema.const('text').required(),
-      maxline: maxline,
-    }),
-    Schema.object({
-      behavior: Schema.const('mixed'),
-      maxline: maxline,
-      urlExtract: urlExtract,
-    }),
-    Schema.object({
-      behavior: Schema.const('image').required(),
-      urlExtract: urlExtract,
-    }),
-  ])
-])
+export const Config: Schema<Config> = Schema.object({
+  behavior: Schema.union([
+    Schema.const('text').description('直接发送，按行数截断'),
+    Schema.const('mixed').description('超过行数则渲染成图片发送'),
+    Schema.const('image').description('渲染成图片发送'),
+  ]).description('简介的渲染行为，没有 puppeteer 时回退到文本').role('radio').default('mixed'),
+  maxline: Schema.number().default(5).description('简介的最大行数，设置为 0 则不限制'),
+  urlExtract: Schema.boolean().default(false).description('发图时提取链接以文本发送'),
+})
 
 const template = `<html>
 <head>
@@ -105,7 +88,7 @@ UP 主: ${up} |  发布时间: ${date}
     } else {
       const html = template.replace('{placeholder}', lines.reduce((x, acc) => x + `<div>${acc}</div>`, ''))
       result += await ctx.puppeteer.render(html)
-      if (urlExtract) {
+      if (config.urlExtract) {
         result += desc.match(URL_REGEX)?.join('\n') || ''
       }
     }

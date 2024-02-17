@@ -10,13 +10,13 @@ declare module 'koishi' {
   }
 }
 
-type Enable<T> = { enable: true, config: T } | { enable?: false }
+type Enable<T> = { enable: true } & T | { enable?: false }
 const enable = <T>(schema: Schema<T>): Schema<Enable<T>> => Schema.intersect([
   Schema.object({ enable: Schema.boolean().default(false).description('是否开启功能。') }),
   Schema.union([
     Schema.object({
       enable: Schema.const(true).required(),
-      config: schema,
+      ...schema.dict,
     }),
     Schema.object({}),
   ]),
@@ -56,6 +56,6 @@ export function apply(context: Context, config: Config) {
     },
     ...config.quester,
   })
-  if (config.dynamic.enable) ctx.plugin(dynamic, config.dynamic.config)
-  if (config.url.enable) ctx.plugin(url, config.url.config)
+  if (config.dynamic.enable) ctx.plugin(dynamic, config.dynamic)
+  if (config.url.enable) ctx.plugin(url, config.url)
 }
