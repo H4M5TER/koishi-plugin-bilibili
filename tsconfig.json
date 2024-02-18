@@ -1,15 +1,10 @@
 {
+  "extends": "@koishijs/scripts/template/tsconfig.base",
   "compilerOptions": {
     "rootDir": "src",
     "outDir": "lib",
-    "target": "es2020",
-    "module": "commonjs",
-    "moduleResolution": "node",
-    "incremental": true,
-    "skipLibCheck": true,
-    "declaration": true,
-    "esModuleInterop": true,
-    "composite": true,
   },
-  "include": ["."],
+  "include": [
+    "src"
+  ],
 }
