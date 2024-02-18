@@ -1,6 +1,6 @@
 {
   "name": "@h4m5ter/koishi-plugin-bilibili",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "bilibili plugin for koishi",
   "license": "MIT",
   "repository": "https://github.com/H4M5TER/koishi-plugin-bilibili.git",
