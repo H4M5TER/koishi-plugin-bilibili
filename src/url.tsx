@@ -1,4 +1,4 @@
-import { Context, Logger, Quester, Schema, version } from 'koishi'
+import { Context, Logger, Quester, Schema, h, version } from 'koishi'
 import { toAvid } from './utils'
 
 // av -> 6 avid -> 8 bv -> 9
@@ -57,33 +57,39 @@ const logger = new Logger('bilibili/url')
 export function apply(ctx: Context, config: Config) {
   async function render(data: any) {
     const { bvid, aid } = data
-    const desc: string = data.desc
     const up = (data.staff ?? []).map(staff => staff.name).join('/') || data.owner.name
     const date = (new Date(data.pubdate * 1000)).toLocaleString()
-    let result = `
-<image url="${data.pic}"/>
+    let summary = `
 标题: ${data.title}
 UP 主: ${up} |  发布时间: ${date}
 点赞: ${data.stat.like} | 硬币: ${data.stat.coin} | 收藏: ${data.stat.favorite}
-播放: ${data.stat.view} | 弹幕: ${data.stat.danmaku} | 评论: ${data.stat.reply}\n`
+播放: ${data.stat.view} | 弹幕: ${data.stat.danmaku} | 评论: ${data.stat.reply}\n\n`
+    const desc: string = data.desc
+    let newDesc: string | h[]
+    let urls: string
     const lines = desc.split('\n')
-    let renderText = config.behavior === 'text' || !ctx.puppeteer
+    const renderText = config.behavior === 'text' || !ctx.puppeteer
       || config.behavior === 'mixed' && lines.length <= config.maxline
     if (renderText) {
       if (config.maxline === 0) {
-        result += desc
+        newDesc = desc
       } else {
-        result += lines.slice(0, config.maxline).join('\n')
+        newDesc = lines.slice(0, config.maxline).join('\n')
       }
     } else {
       const html = template.replace('{placeholder}', lines.reduce((x, acc) => x + `<div>${acc}</div>`, ''))
-      result += await ctx.puppeteer.render(html)
+      newDesc = h.parse(await ctx.puppeteer.render(html))
       if (config.urlExtract) {
-        result += desc.match(URL_REGEX)?.join('\n') || ''
+        urls = desc.match(URL_REGEX)?.join('\n') || ''
       }
     }
-    result += `\nhttps://bilibili.com/video/av${aid}`
-    return result
+    return <>
+      {`https://bilibili.com/video/av${aid}`}
+      <image url="${data.pic}" />
+      {summary}
+      {newDesc}
+      {urls}
+    </>
   }
   ctx.middleware(async ({ elements }, next) => {
     try {
@@ -125,7 +131,7 @@ async function testVideo(content: string, http: Quester): Promise<string> {
 }
 
 async function parseB23(value: string, http: Quester): Promise<string> {
-  const result = await http(`https://b23.tv/${value}`, {redirect: 'manual'})
+  const result = await http(`https://b23.tv/${value}`, { redirect: 'manual' })
   if (result.status !== 302) return
   return result.headers.get('location')
 }
