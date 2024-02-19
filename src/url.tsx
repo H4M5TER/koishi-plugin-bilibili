@@ -85,7 +85,7 @@ UP 主: ${up} |  发布时间: ${date}
     }
     return <>
       {`https://bilibili.com/video/av${aid}`}
-      <image url="${data.pic}" />
+      <image url={data.pic} />
       {summary}
       {newDesc}
       {urls}
