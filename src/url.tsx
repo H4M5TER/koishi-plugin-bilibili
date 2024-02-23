@@ -98,12 +98,22 @@ UP 主: ${up} | 时长: ${duration}
     try {
       for (const element of elements) {
         let url
-        if (element.type === 'text') {
+        switch (element.type) {
+        case 'text':
           url = element.attrs.content
-        } else if (element.type === 'json') {
+          break
+        case 'json':
+          // eslint-disable-next-line no-case-declarations, @typescript-eslint/naming-convention
           const { detail_1, news } = JSON.parse(element.attrs.data).meta
           if (detail_1) url = detail_1.qqdocurl
           if (news) url = news.jumpUrl
+          if (!url) {
+            ctx.logger.warn('Unknown json card: ' + element.attrs.data)
+            continue
+          }
+          break
+        default:
+          continue
         }
         const vid = await testVideo(url, ctx.http)
         if (!vid) return next()
