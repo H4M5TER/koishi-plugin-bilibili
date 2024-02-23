@@ -59,9 +59,12 @@ export function apply(ctx: Context, config: Config) {
     const { bvid, aid } = data
     const up = (data.staff ?? []).map(staff => staff.name).join('/') || data.owner.name
     const date = (new Date(data.pubdate * 1000)).toLocaleString()
-    let summary = `
+    let duration = `${data.duration % 60} 秒`
+    if (data.duration > 60) { duration = `${Math.floor(data.duration / 60)} 分 ${duration}` }
+    const summary = `
 标题: ${data.title}
-UP 主: ${up} |  发布时间: ${date}
+UP 主: ${up} | 时长: ${duration}
+发布时间: ${date}
 点赞: ${data.stat.like} | 硬币: ${data.stat.coin} | 收藏: ${data.stat.favorite}
 播放: ${data.stat.view} | 弹幕: ${data.stat.danmaku} | 评论: ${data.stat.reply}\n\n`
     const desc: string = data.desc
