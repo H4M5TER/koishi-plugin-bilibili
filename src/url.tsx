@@ -1,4 +1,4 @@
-import { Context, Logger, Quester, Schema, h, version } from 'koishi'
+import { Context, h, Logger, Quester, Schema } from 'koishi'
 import { toAvid } from './utils'
 
 // av -> 6 avid -> 8 bv -> 9
@@ -6,6 +6,7 @@ const VIDEO_REGEX = /(((https?:\/\/)?(www.|m.)?bilibili.com\/(video\/)?)?((av|AV
 // value -> 4
 const B23_REGEX = /((https?:\/\/)?(b23.tv|bili2233.cn)\/(((av|ep|ss)\d+)|BV1[1-9A-NP-Za-km-z]{9}|\S{6,7}))/
 // from https://gist.github.com/dperini/729294
+// eslint-disable-next-line max-len
 const URL_REGEX = /(?:(?:(?:https?|ftp):)?\/\/)?(?:(?:[a-z0-9\u00a1-\uffff][a-z0-9\u00a1-\uffff_-]{0,62})?[a-z0-9\u00a1-\uffff]\.)+(?:[a-z\u00a1-\uffff]{2,}\.?)(?::\d{2,5})?(?:[/?#]\S*)?/ig
 
 export interface Config {
@@ -56,7 +57,7 @@ const logger = new Logger('bilibili/url')
 
 export function apply(ctx: Context, config: Config) {
   async function render(data: any) {
-    const { bvid, aid } = data
+    const { aid } = data
     const up = (data.staff ?? []).map(staff => staff.name).join('/') || data.owner.name
     const date = (new Date(data.pubdate * 1000)).toLocaleString()
     let duration = `${data.duration % 60} 秒`

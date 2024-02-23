@@ -1,4 +1,4 @@
-import { Argv, Context, Channel, Dict, Quester, Schema, segment, Logger } from 'koishi'
+import { Argv, Channel, Context, Dict, h, Logger, Quester, Schema } from 'koishi'
 import { } from 'koishi-plugin-puppeteer'
 import { Page } from 'puppeteer-core'
 
@@ -90,7 +90,6 @@ export interface Config {
   cookie: string
 }
 
-
 export const Config: Schema<Config> = Schema.object({
   interval: Schema.number().description('请求之间的间隔 (秒)。').default(10),
   image: Schema.boolean().description('是否渲染为图片 (该选项依赖 puppeteer 插件)。').default(true),
@@ -116,16 +115,15 @@ export async function apply(ctx: Context, config: Config) {
   }, {} as Dict<[Pick<Channel, 'id' | 'guildId' | 'platform' | 'bilibili'>, DynamicNotifiction][]>)
 
   ctx.guild().command('bilibili/dynamic.add <uid:string>', '添加对 B 站用户的动态的监听', { checkArgCount: true, authority: 2 })
-    .option('at', '--at', {fallback: false})
+    .option('at', '--at', { fallback: false })
     .channelFields(['id', 'guildId', 'platform', 'bilibili'])
     .before(checkDynamic)
     .action(async ({ session, options }, uid) => {
       if (session.channel.bilibili.dynamic.find(notification => notification.bilibiliId === uid)) {
         return '该用户已在监听列表中。'
       }
-      let items: BilibiliDynamicItem[]
       try {
-        items = await request(uid, ctx.http, config)
+        await request(uid, ctx.http, config)
       } catch (e) {
         logger.error(e)
         return '请求失败，请检查 UID 是否正确或重试。'
@@ -136,7 +134,7 @@ export async function apply(ctx: Context, config: Config) {
         atAll: options.at,
       }
       session.channel.bilibili.dynamic.push(notification)
-      ;(list[uid] ||= []).push([{
+      ; (list[uid] ||= []).push([{
         id: session.channel.id,
         guildId: session.channel.guildId,
         platform: session.platform,
@@ -175,8 +173,8 @@ export async function apply(ctx: Context, config: Config) {
         .map(notification => '·' + notification.bilibiliId).join('\n')
     })
 
-  async function *listen() {
-    while(true) {
+  async function* listen() {
+    while (true) {
       const entries = Object.entries(list)
       if (entries.length === 0) {
         yield
@@ -193,7 +191,7 @@ export async function apply(ctx: Context, config: Config) {
               notification.lastUpdated = items[0]?.modules.module_author.pub_ts || Math.ceil(+new Date() / 1000))
             continue
           }
-          let neo = items.filter(item => item.modules.module_author.pub_ts > time)
+          const neo = items.filter(item => item.modules.module_author.pub_ts > time)
             .filter(item => config.allow.some(type => item.type === type))
           if (neo.length !== 0) {
             let rendered: string[]
@@ -206,8 +204,7 @@ export async function apply(ctx: Context, config: Config) {
               notifications.forEach(([channel, notification]) => {
                 notification.lastUpdated = neo[index].modules.module_author.pub_ts
                 let msg = text
-                if (notification.atAll)
-                  msg = segment.at('all').toString() + msg
+                if (notification.atAll) { msg = h.at('all').toString() + msg }
                 const bot = ctx.bots[notification.botId]
                 bot.sendMessage(channel.id, msg, channel.guildId)
               })
@@ -259,15 +256,13 @@ async function renderImage(ctx: Context, item: BilibiliDynamicItem): Promise<str
     if (item.type === 'DYNAMIC_TYPE_LIVE_RCMD') {
       const info: LivePlayInfo = JSON.parse(item.modules.module_dynamic.major.live_rcmd.content).live_play_info
       return `${item.modules.module_author.name} 开始直播: ${info.title}\n`
-        + segment.image(await element.screenshot())
+        + h.image(await element.screenshot())
         + `\n${info.link}`
     } else {
       return `${item.modules.module_author.name} 发布了动态:\n`
-        + segment.image(await element.screenshot())
+        + h.image(await element.screenshot())
         + `\nhttps://t.bilibili.com/${item.id_str}`
     }
-  } catch (e) {
-    throw e
   } finally {
     page?.close()
   }
@@ -293,7 +288,7 @@ function renderText(item: BilibiliDynamicItem): string {
     const dynamic = item.modules.module_dynamic
     const info: LivePlayInfo = JSON.parse(dynamic.major.live_rcmd.content).live_play_info
     result = `${author.name} 开始直播:\n${info.title}`
-    if (info.cover) result += `\n${segment.image(info.cover)}`
+    if (info.cover) result += `\n${h.image(info.cover)}`
   } else {
     result = `${author.name} 发布了未知类型的动态: ${item['type']}`
   }
